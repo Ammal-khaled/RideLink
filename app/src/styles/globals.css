@@ -1,0 +1,215 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap');
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --font-size: 14px;
+  --background: #ffffff;
+  --foreground: #1a1a1a;
+  --card: #ffffff;
+  --card-foreground: #1a1a1a;
+  --popover: #ffffff;
+  --popover-foreground: #1a1a1a;
+  --primary: #003366;
+  --primary-foreground: #ffffff;
+  --secondary: #f5f5f5;
+  --secondary-foreground: #1a1a1a;
+  --muted: #f5f5f5;
+  --muted-foreground: #666666;
+  --accent: #e6f2ff;
+  --accent-foreground: #003366;
+  --destructive: #dc3545;
+  --destructive-foreground: #ffffff;
+  --border: rgba(0, 0, 0, 0.1);
+  --input: transparent;
+  --input-background: #f8f9fa;
+  --switch-background: #cbced4;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --font-weight-bold: 600;
+  --ring: #003366;
+  --chart-1: #003366;
+  --chart-2: #0066cc;
+  --chart-3: #3399ff;
+  --chart-4: #66ccff;
+  --chart-5: #99ddff;
+  --radius: 0.75rem;
+  --radius-card: 0.875rem;
+  --sidebar: #f8f9fa;
+  --sidebar-foreground: #1a1a1a;
+  --sidebar-primary: #003366;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e6f2ff;
+  --sidebar-accent-foreground: #003366;
+  --sidebar-border: rgba(0, 0, 0, 0.1);
+  --sidebar-ring: #003366;
+}
+
+.dark {
+  --background: #1a1a1a;
+  --foreground: #ffffff;
+  --card: #2a2a2a;
+  --card-foreground: #ffffff;
+  --popover: #2a2a2a;
+  --popover-foreground: #ffffff;
+  --primary: #0066cc;
+  --primary-foreground: #ffffff;
+  --secondary: #3a3a3a;
+  --secondary-foreground: #ffffff;
+  --muted: #3a3a3a;
+  --muted-foreground: #cccccc;
+  --accent: #1a3d5c;
+  --accent-foreground: #ffffff;
+  --destructive: #dc3545;
+  --destructive-foreground: #ffffff;
+  --border: rgba(255, 255, 255, 0.1);
+  --input: #3a3a3a;
+  --ring: #0066cc;
+  --sidebar: #2a2a2a;
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #0066cc;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1a3d5c;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --sidebar-ring: #0066cc;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-card: var(--radius-card);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Cairo', 'Noto Sans Arabic', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+}
+
+/**
+ * Base typography. This is not applied to elements which have an ancestor with a Tailwind text class.
+ */
+@layer base {
+  :where(:not(:has([class*=" text-"]), :not(:has([class^="text-"])))) {
+    h1 {
+      font-size: 1.5rem;
+      font-weight: var(--font-weight-bold);
+      line-height: 1.4;
+    }
+
+    h2 {
+      font-size: 1.375rem;
+      font-weight: var(--font-weight-bold);
+      line-height: 1.4;
+    }
+
+    h3 {
+      font-size: 1.25rem;
+      font-weight: var(--font-weight-medium);
+      line-height: 1.4;
+    }
+
+    h4 {
+      font-size: 1.125rem;
+      font-weight: var(--font-weight-medium);
+      line-height: 1.4;
+    }
+
+    p {
+      font-size: 1rem;
+      font-weight: var(--font-weight-normal);
+      line-height: 1.5;
+    }
+
+    label {
+      font-size: 1rem;
+      font-weight: var(--font-weight-medium);
+      line-height: 1.4;
+    }
+
+    button {
+      font-size: 1rem;
+      font-weight: var(--font-weight-medium);
+      line-height: 1.4;
+    }
+
+    input {
+      font-size: 1rem;
+      font-weight: var(--font-weight-normal);
+      line-height: 1.4;
+    }
+  }
+}
+
+html {
+  font-size: var(--font-size);
+}
+
+/* Custom utilities for RideLink */
+.text-title {
+  font-size: 1.375rem;
+  font-weight: var(--font-weight-bold);
+}
+
+.text-body {
+  font-size: 1rem;
+  font-weight: var(--font-weight-normal);
+}
+
+.shadow-card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.shadow-modal {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.gradient-blue {
+  background: linear-gradient(135deg, #003366 0%, #0066cc 100%);
+}
+
+.gradient-blue-subtle {
+  background: linear-gradient(135deg, #e6f2ff 0%, #f0f8ff 100%);
+}
