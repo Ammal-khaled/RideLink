@@ -1,0 +1,17 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.env
+.env.local
+*.log
+
+.tools/
+.reference/
+.runtime/
+.local/
+
+*.sqlite*
+*.jks
+*.keystore
+mobile/android/key.properties
+artifacts/
