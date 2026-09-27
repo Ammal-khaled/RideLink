@@ -1,0 +1,6 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {rentalDays,quote,available,fleet} from '../src/domain.ts';
+test('rental totals count nights across month boundaries without adding deposit',()=>{assert.deepEqual(quote(45,'2026-09-30','2026-10-02',true,5),{days:2,total:95});assert.equal(rentalDays('2026-10-02','2026-10-02'),0);assert.equal(rentalDays('bad','2026-10-02'),0);});
+test('approved bookings block overlapping dates but allow same-day returns',()=>{const car={id:'a',status:'available'};const bookings=[{id:'b',carId:'a',status:'approved',start:'2026-09-23',end:'2026-09-25'}];assert.equal(available(car,bookings,'2026-09-24','2026-09-26'),false);assert.equal(available(car,bookings,'2026-09-25','2026-09-26'),true);assert.equal(available(car,bookings,'2026-09-23','2026-09-25','b'),true);assert.equal(available({...car,status:'maintenance'},[],'2026-09-25','2026-09-26'),false);});
+test('fleet statistics reflect current approved rentals only',()=>{assert.deepEqual(fleet([{id:'a',status:'available'},{id:'b',status:'maintenance'},{id:'c',status:'available'}],[{carId:'a',status:'approved',start:'2026-09-20',end:'2026-09-25'}],'2026-09-22'),{total:3,rented:1,maintenance:1,available:1});});

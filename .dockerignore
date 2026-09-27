@@ -1,0 +1,12 @@
+node_modules
+.git
+.tools
+.reference
+.runtime
+.local
+mobile
+app
+.env*
+dist
+tests
+*.log
