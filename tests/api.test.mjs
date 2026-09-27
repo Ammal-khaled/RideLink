@@ -10,6 +10,7 @@ test('authenticated API enforces roles, server prices and booking conflicts',asy
  assert.equal((await call('/admin/state')).status,401);
  assert.equal((await call('/auth/login','POST',{email:'owner@example.com',password:'wrong'})).status,401);
  const owner=(await call('/auth/login','POST',{email:'owner@example.com',password:'Strong-password-123'})).body.token;
+ const missingStoreCar=await call('/admin/cars','POST',{name:'Toyota',category:'Comfort',price:45,deposit:50,eta:'30–45',image:'/images/camry.jpg',description:'Rental vehicle',seats:5,status:'available',storeId:'missing-store'},owner);assert.equal(missingStoreCar.status,404);
  const s=(await call('/admin/stores','POST',{name:'Actual Rental Shop',city:'Amman',email:'shop@example.com'},owner)).body;
  assert.equal(s.status,'pending');await call('/admin/stores/'+s.id,'PATCH',{status:'active'},owner);
  const other=(await call('/admin/stores','POST',{name:'Other Shop',city:'Irbid',email:'other@example.com'},owner)).body;await call('/admin/stores/'+other.id,'PATCH',{status:'active'},owner);
