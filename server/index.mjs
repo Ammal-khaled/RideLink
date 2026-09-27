@@ -3,7 +3,8 @@ import {readFileSync,existsSync} from 'node:fs';
 import {resolve,extname,sep} from 'node:path';
 import {randomBytes} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
-import {openDb,id,passwordHash,verifyPassword,hashToken,publicUser} from './db.mjs';
+import {openDb,id,passwordHash,verifyPassword,hashToken,publicUser,registerCustomer} from './db.mjs';
+import {seedDemo} from './seed.mjs';
 const ROOT=resolve(fileURLToPath(new URL('..',import.meta.url)));
 class ApiError extends Error{constructor(status,message){super(message);this.status=status;}}
 const fail=(status,message)=>{throw new ApiError(status,message)};
@@ -12,11 +13,11 @@ const email=value=>{const v=text(value,'email').toLowerCase();if(!/^[^\s@]+@[^\s
 const num=(value,name,min,max)=>{if(typeof value!=='number'||!Number.isFinite(value)||value<min||value>max)fail(400,`Invalid ${name}`);return value};
 const choice=(value,list,name)=>{if(!list.includes(value))fail(400,`Invalid ${name}`);return value};
 const date=value=>{if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(value))fail(400,'Invalid date');const timestamp=Date.parse(value+'T00:00:00Z');if(!Number.isFinite(timestamp)||new Date(timestamp).toISOString().slice(0,10)!==value)fail(400,'Invalid date');return value};
-const today=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Amman',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+const today=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Dubai',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 const parse=row=>JSON.parse(row.payload);
 async function body(req){let chunks=[],size=0;for await(const chunk of req){size+=chunk.length;if(size>3*1024*1024)fail(413,'Request is too large');chunks.push(chunk);}try{return JSON.parse(Buffer.concat(chunks).toString()||'{}')}catch{fail(400,'Invalid JSON')}}
 export function createApp({dbPath=process.env.DATABASE_PATH||resolve(ROOT,'.runtime/ridelink.sqlite'),origin=process.env.APP_ORIGIN||'http://127.0.0.1:5173',secure=process.env.NODE_ENV==='production'}={}){
-const db=openDb(dbPath);const limits=new Map();
+const db=openDb(dbPath);seedDemo(db);const limits=new Map();
 // This in-memory limiter resets on restart and is per-instance; deployment assumes a single API instance.
 function rate(req,kind,max=12){const k=kind+':'+req.socket.remoteAddress;const now=Date.now();const r=limits.get(k);if(r&&r.until>now){if(r.n>=max)fail(429,'Too many attempts. Try again in 15 minutes.');r.n++}else{if(limits.size>10000)limits.clear();limits.set(k,{n:1,until:now+900000})}}
 function auth(req,required=true){const raw=req.headers.authorization?.startsWith('Bearer ')?req.headers.authorization.slice(7):req.headers.cookie?.split(';').map(s=>s.trim()).find(s=>s.startsWith('ridelink_session='))?.slice(17);if(!raw){if(required)fail(401,'Sign in required');return null}const u=db.prepare('SELECT users.* FROM sessions JOIN users ON users.id=sessions.user_id WHERE token_hash=? AND expires_at>? AND users.active=1').get(hashToken(raw),Date.now());if(!u){if(required)fail(401,'Session expired. Sign in again.');return null}if(u.role==='shop'&&!db.prepare("SELECT id FROM stores WHERE id=? AND status='active'").get(u.store_id))fail(403,'Your store is not active');return u;}
@@ -33,7 +34,7 @@ function saveCar(input,u,cid){const old=cid?carRow(cid):null;if(old)ownCar(u,old
 const server=createServer(async(req,res)=>{res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','same-origin');res.setHeader('Cache-Control','no-store');const url=new URL(req.url,'http://localhost');const path=url.pathname;const method=req.method;const send=(value,status=200)=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8'});res.end(JSON.stringify(value));};try{
 if(path.startsWith('/api/')&&!['GET','HEAD','OPTIONS'].includes(method)){if(req.headers.origin&&req.headers.origin!==origin)fail(403,'Origin not allowed');if(!String(req.headers['content-type']).startsWith('application/json'))fail(415,'Content-Type must be application/json');}
 if(path==='/api/health')return send({ok:true});
-if(path==='/api/auth/register'&&method==='POST'){rate(req,'register',8);const b=await body(req);const name=text(b.name,'name',100),mail=email(b.email),password=text(b.password,'password',256);if(password.length<12)fail(400,'Use a password with at least 12 characters');const uid=id();try{db.prepare('INSERT INTO users VALUES(?,?,?,?,?,?,?,?)').run(uid,mail,name,passwordHash(password),'customer',null,1,new Date().toISOString())}catch(e){if(String(e).includes('UNIQUE'))fail(409,'Unable to create account with this email');throw e}const u=db.prepare('SELECT * FROM users WHERE id=?').get(uid);const token=session(u,res);return send({user:publicUser(u),token},201)}
+if(path==='/api/auth/register'&&method==='POST'){rate(req,'register',8);const b=await body(req);const name=text(b.name,'name',100),mail=email(b.email),password=text(b.password,'password',256);if(password.length<12)fail(400,'Use a password with at least 12 characters');let u;try{u=registerCustomer(db,name,mail,password)}catch(e){if(String(e).includes('UNIQUE'))fail(409,'Unable to create account with this email');throw e}const token=session(u,res);return send({user:publicUser(u),token},201)}
 if(path==='/api/auth/login'&&method==='POST'){rate(req,'login');const b=await body(req);const u=db.prepare('SELECT * FROM users WHERE email=?').get(email(b.email));if(!u||!u.active||!verifyPassword(text(b.password,'password',256),u.password_hash))fail(401,'Invalid email or password');if(u.role==='shop')activeStore(u.store_id);const token=session(u,res);audit(u,'login',u.id);return send({user:publicUser(u),token})}
 if(path==='/api/auth/me'&&method==='GET')return send({user:publicUser(auth(req))});
 if(path==='/api/auth/logout'&&method==='POST'){const u=auth(req);const raw=req.headers.authorization?.slice(7)||req.headers.cookie?.split(';').map(s=>s.trim()).find(s=>s.startsWith('ridelink_session='))?.slice(17);if(raw)db.prepare('DELETE FROM sessions WHERE token_hash=?').run(hashToken(raw));res.setHeader('Set-Cookie',`ridelink_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0${secure?'; Secure':''}`);return send({ok:true})}

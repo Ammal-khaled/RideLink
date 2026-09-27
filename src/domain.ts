@@ -5,7 +5,7 @@ export type Admin = {id:string; name:string; email:string; storeId:string; activ
 export type Review = {id:string; name:string; storeId:string; rating:number; text:string; status:'pending'|'published'|'hidden'};
 export type Settings = {deliveryFee:number; promotion:string};
 export type Data = {cars:Car[]; bookings:Booking[]; stores:Store[]; admins:Admin[]; reviews:Review[]; settings:Settings};
-export function today(){return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Amman',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());}
+export function today(){return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Dubai',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());}
 export function rentalDays(start:string,end:string){const a=Date.parse(start+'T00:00:00Z'),b=Date.parse(end+'T00:00:00Z');if(!Number.isFinite(a)||!Number.isFinite(b)||b<=a) return 0;return Math.round((b-a)/86400000);}
 export function quote(price:number,start:string,end:string,delivery:boolean,fee:number){const days=rentalDays(start,end);return {days,total:days*price+(delivery?fee:0)};}
 export function overlaps(a:string,b:string,c:string,d:string){return a<d && c<b;}

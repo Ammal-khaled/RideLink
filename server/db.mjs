@@ -6,6 +6,7 @@ export const id=()=>randomUUID();
 export const hashToken=t=>createHash('sha256').update(t).digest('hex');
 export function passwordHash(password){const salt=randomBytes(16).toString('hex');return salt+':'+scryptSync(password,salt,64).toString('hex');}
 export function verifyPassword(password,stored){try{const [salt,key]=stored.split(':');return timingSafeEqual(scryptSync(password,salt,64),Buffer.from(key,'hex'));}catch{return false}}
+export function registerCustomer(db,name,email,password){const uid=id();db.prepare('INSERT INTO users VALUES(?,?,?,?,?,?,?,?)').run(uid,email,name,passwordHash(password),'customer',null,1,new Date().toISOString());return db.prepare('SELECT * FROM users WHERE id=?').get(uid)}
 export function openDb(path){if(path!==':memory:')mkdirSync(dirname(path),{recursive:true});const db=new DatabaseSync(path);db.exec(`PRAGMA foreign_keys=ON; PRAGMA journal_mode=WAL;
 CREATE TABLE IF NOT EXISTS users(id TEXT PRIMARY KEY,email TEXT UNIQUE NOT NULL,name TEXT NOT NULL,password_hash TEXT NOT NULL,role TEXT NOT NULL CHECK(role IN ('customer','shop','system')),store_id TEXT,active INTEGER NOT NULL DEFAULT 1,created_at TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS sessions(token_hash TEXT PRIMARY KEY,user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,expires_at INTEGER NOT NULL);

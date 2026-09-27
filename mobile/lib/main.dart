@@ -432,7 +432,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            tr(context, 'Daily rates in Jordanian dinars'),
+            tr(context, 'Daily rates in UAE dirhams'),
             style: const TextStyle(color: Colors.blueGrey),
           ),
           const SizedBox(height: 22),
@@ -520,7 +520,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                           children: [
                             Expanded(
                               child: Text(
-                                '${car['price']} JOD / ${tr(context, 'day')}',
+                                '${car['price']} AED / ${tr(context, 'day')}',
                                 style: const TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
@@ -553,7 +553,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                         Text(
                           car['deposit'] == 0
                               ? tr(context, 'No deposit required')
-                              : '${tr(context, 'Deposit')}: ${car['deposit']} JOD · ${tr(context, 'at pickup')}',
+                              : '${tr(context, 'Deposit')}: ${car['deposit']} AED · ${tr(context, 'at pickup')}',
                           style: const TextStyle(
                             color: Colors.blueGrey,
                             fontSize: 13,
@@ -606,19 +606,19 @@ class CarDetails extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            '${tr(context, car['city'])} · ${car['price']} JOD / ${tr(context, 'day')}',
+            '${tr(context, car['city'])} · ${car['price']} AED / ${tr(context, 'day')}',
           ),
           const SizedBox(height: 20),
           InfoPanel(
             icon: Icons.shield_outlined,
             text: car['deposit'] == 0
                 ? tr(context, 'No deposit required')
-                : '${tr(context, 'Deposit')}: ${car['deposit']} JOD (${tr(context, 'paid at pickup')})',
+                : '${tr(context, 'Deposit')}: ${car['deposit']} AED (${tr(context, 'paid at pickup')})',
           ),
           InfoPanel(
             icon: Icons.local_shipping_outlined,
             text:
-                '${tr(context, 'Delivery ETA')}: ${car['eta']} ${tr(context, 'minutes')} · +${catalog['settings']['deliveryFee']} JOD',
+                '${tr(context, 'Delivery ETA')}: ${car['eta']} ${tr(context, 'minutes')} · +${catalog['settings']['deliveryFee']} AED',
           ),
           Text(
             tr(
@@ -829,7 +829,7 @@ class _BookingScreenState extends State<BookingScreen> {
               SwitchListTile.adaptive(
                 contentPadding: EdgeInsets.zero,
                 title: Text(tr(context, 'Deliver the car to me')),
-                subtitle: Text('+${widget.fee} JOD'),
+                subtitle: Text('+${widget.fee} AED'),
                 value: delivery,
                 onChanged: busy ? null : (v) => setState(() => delivery = v),
               ),
@@ -865,21 +865,21 @@ class _BookingScreenState extends State<BookingScreen> {
                       SummaryRow(tr(context, 'Days'), '$days'),
                       SummaryRow(
                         tr(context, 'Daily rental'),
-                        '${widget.car['price']} JOD',
+                        '${widget.car['price']} AED',
                       ),
                       SummaryRow(
                         tr(context, 'Delivery'),
-                        '${delivery ? widget.fee : 0} JOD',
+                        '${delivery ? widget.fee : 0} AED',
                       ),
                       const Divider(),
                       SummaryRow(
                         tr(context, 'Rental total'),
-                        '${total.toStringAsFixed(2)} JOD',
+                        '${total.toStringAsFixed(2)} AED',
                         bold: true,
                       ),
                       SummaryRow(
                         tr(context, 'Separate deposit at pickup'),
-                        '${widget.car['deposit']} JOD',
+                        '${widget.car['deposit']} AED',
                       ),
                     ],
                   ),
@@ -966,11 +966,11 @@ class ConfirmationScreen extends StatelessWidget {
                 ),
                 SummaryRow(
                   tr(context, 'Rental total'),
-                  '${booking['total']} JOD',
+                  '${booking['total']} AED',
                 ),
                 SummaryRow(
                   tr(context, 'Deposit at pickup'),
-                  '${booking['deposit']} JOD',
+                  '${booking['deposit']} AED',
                 ),
                 if (booking['delivery'] == true)
                   SummaryRow(
@@ -1101,10 +1101,10 @@ class _BookingsScreenState extends State<BookingsScreen> {
                     const SizedBox(height: 10),
                     Text('${b['start']} → ${b['end']}'),
                     const SizedBox(height: 8),
-                    Text('${b['total']} JOD · ${tr(context, b['payment'])}'),
+                    Text('${b['total']} AED · ${tr(context, b['payment'])}'),
                     const SizedBox(height: 8),
                     Text(
-                      '${tr(context, 'Deposit at pickup')}: ${b['deposit']} JOD',
+                      '${tr(context, 'Deposit at pickup')}: ${b['deposit']} AED',
                       style: const TextStyle(color: Colors.blueGrey),
                     ),
                     if (['pending', 'approved'].contains(b['status']))

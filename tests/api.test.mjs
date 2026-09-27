@@ -3,17 +3,41 @@ import assert from 'node:assert/strict';
 import {once} from 'node:events';
 import {createApp} from '../server/index.mjs';
 import {id,passwordHash} from '../server/db.mjs';
+import {seedDemo} from '../server/seed.mjs';
+function createUnseededApp(options){const env={node:process.env.NODE_ENV,disabled:process.env.DISABLE_DEMO_SEED};process.env.NODE_ENV='production';process.env.DISABLE_DEMO_SEED='1';try{return createApp(options)}finally{if(env.node===undefined)delete process.env.NODE_ENV;else process.env.NODE_ENV=env.node;if(env.disabled===undefined)delete process.env.DISABLE_DEMO_SEED;else process.env.DISABLE_DEMO_SEED=env.disabled}}
+function createSeededApp(options){const env={node:process.env.NODE_ENV,disabled:process.env.DISABLE_DEMO_SEED};process.env.NODE_ENV='test';delete process.env.DISABLE_DEMO_SEED;try{return createApp(options)}finally{if(env.node===undefined)delete process.env.NODE_ENV;else process.env.NODE_ENV=env.node;if(env.disabled===undefined)delete process.env.DISABLE_DEMO_SEED;else process.env.DISABLE_DEMO_SEED=env.disabled}}
+test('an empty database is seeded with UAE demo data at startup',()=>{
+ const {db}=createSeededApp({dbPath:':memory:'});
+ try{
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM stores').get().n,4);
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM cars').get().n,20);
+  assert.equal(db.prepare("SELECT COUNT(*) AS n FROM users WHERE role='shop'").get().n,4);
+  assert.equal(db.prepare("SELECT COUNT(*) AS n FROM users WHERE role='customer'").get().n,15);
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM bookings').get().n,15);
+  assert.equal(db.prepare("SELECT COUNT(*) AS n FROM reviews WHERE status='published'").get().n,4);
+  assert.equal(db.prepare("SELECT COUNT(*) AS n FROM cars WHERE json_extract(payload,'$.status')='maintenance'").get().n,3);
+  assert.deepEqual(db.prepare('SELECT status,COUNT(*) AS n FROM bookings GROUP BY status ORDER BY status').all().map(({status,n})=>[status,n]),[['approved',4],['cancelled',1],['completed',5],['pending',4],['rejected',1]]);
+  assert.deepEqual(db.prepare('SELECT city FROM stores ORDER BY city').all().map(s=>s.city),['Abu Dhabi','Ajman','Dubai','Sharjah']);
+  assert.equal(JSON.parse(db.prepare('SELECT payload FROM settings WHERE id=1').get().payload).deliveryFee,25);
+  assert.equal(seedDemo(db),false,'a second seed attempt leaves existing stores untouched');
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM stores').get().n,4);
+ }finally{db.close()}
+});
+test('demo seed can be disabled on production startup',()=>{
+ const {db}=createUnseededApp({dbPath:':memory:'});
+ try{assert.equal(db.prepare('SELECT COUNT(*) AS n FROM stores').get().n,0)}finally{db.close()}
+});
 test('authenticated API enforces roles, server prices and booking conflicts',async()=>{
- const {server,db}=createApp({dbPath:':memory:'});server.listen(0,'127.0.0.1');await once(server,'listening');const base=`http://127.0.0.1:${server.address().port}/api`;
+ const {server,db}=createUnseededApp({dbPath:':memory:'});server.listen(0,'127.0.0.1');await once(server,'listening');const base=`http://127.0.0.1:${server.address().port}/api`;
  const call=async(path,method='GET',body,token)=>{const r=await fetch(base+path,{method,headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},...(body?{body:JSON.stringify(body)}:{})});return {status:r.status,body:await r.json()}};
  try{const uid=id();db.prepare('INSERT INTO users VALUES(?,?,?,?,?,?,?,?)').run(uid,'owner@example.com','Owner',passwordHash('Strong-password-123'),'system',null,1,new Date().toISOString());
  assert.equal((await call('/admin/state')).status,401);
  assert.equal((await call('/auth/login','POST',{email:'owner@example.com',password:'wrong'})).status,401);
  const owner=(await call('/auth/login','POST',{email:'owner@example.com',password:'Strong-password-123'})).body.token;
  const missingStoreCar=await call('/admin/cars','POST',{name:'Toyota',category:'Comfort',price:45,deposit:50,eta:'30–45',image:'/images/camry.jpg',description:'Rental vehicle',seats:5,status:'available',storeId:'missing-store'},owner);assert.equal(missingStoreCar.status,404);
- const s=(await call('/admin/stores','POST',{name:'Actual Rental Shop',city:'Amman',email:'shop@example.com'},owner)).body;
+ const s=(await call('/admin/stores','POST',{name:'Actual Rental Shop',city:'Dubai',email:'shop@example.com'},owner)).body;
  assert.equal(s.status,'pending');await call('/admin/stores/'+s.id,'PATCH',{status:'active'},owner);
- const other=(await call('/admin/stores','POST',{name:'Other Shop',city:'Irbid',email:'other@example.com'},owner)).body;await call('/admin/stores/'+other.id,'PATCH',{status:'active'},owner);
+ const other=(await call('/admin/stores','POST',{name:'Other Shop',city:'Sharjah',email:'other@example.com'},owner)).body;await call('/admin/stores/'+other.id,'PATCH',{status:'active'},owner);
  const admin=(await call('/admin/users','POST',{name:'Shop Manager',email:'manager@example.com',password:'Strong-password-456',storeId:s.id},owner)).body;
  const shop=(await call('/auth/login','POST',{email:'manager@example.com',password:'Strong-password-456'})).body.token;
  assert.equal((await call('/admin/settings','PUT',{deliveryFee:1,promotion:'attack'},shop)).status,403);

@@ -15,7 +15,7 @@ npm run server
 
 The API serves the built websites at `http://127.0.0.1:3001`. For development, run `npm run dev` in another terminal; the Vite website is at `http://127.0.0.1:5173` and connects to the API on port 3001.
 
-The first setup creates a system administrator. Its generated credentials are saved locally in `.local/admin-credentials.txt`, which is excluded from Git. Setup does not create sample stores, customers, cars, or bookings. Sign in as the system admin to add and approve a store and provision its shop-admin account.
+The first setup creates a system administrator. Its generated credentials are saved locally in `.local/admin-credentials.txt`, which is excluded from Git. On server startup, an empty database is automatically populated with UAE demo stores, cars, shop admins, customers, bookings, and reviews. Generated shop-admin emails and passwords are printed to the server console. To disable demo seeding for a real production launch, set `NODE_ENV=production` and `DISABLE_DEMO_SEED=1` before starting the server. Sign in as the system admin to manage stores and accounts.
 
 ## Run the Android app
 

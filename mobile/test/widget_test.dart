@@ -44,8 +44,8 @@ void main() {
         ),
       ),
     );
-    expect(find.text('95 JOD'), findsOneWidget);
-    expect(find.text('50 JOD'), findsOneWidget);
+    expect(find.text('95 AED'), findsOneWidget);
+    expect(find.text('50 AED'), findsOneWidget);
     expect(find.text('Booking request submitted'), findsOneWidget);
   });
 }
